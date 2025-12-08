@@ -2,6 +2,7 @@ import { app, shell, BrowserWindow, ipcMain } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
+import { settingsStore } from './store'
 
 function createWindow(): void {
   // Create the browser window.
@@ -51,6 +52,38 @@ app.whenReady().then(() => {
 
   // IPC test
   ipcMain.on('ping', () => console.log('pong'))
+
+  // Settings Store IPC Handlers
+  ipcMain.handle('settings:hasApiKey', () => {
+    return settingsStore.hasApiKey()
+  })
+
+  ipcMain.handle('settings:getApiKey', () => {
+    return settingsStore.getApiKey()
+  })
+
+  ipcMain.handle('settings:setApiKey', (_, apiKey: string) => {
+    settingsStore.setApiKey(apiKey)
+    return true
+  })
+
+  ipcMain.handle('settings:clearApiKey', () => {
+    settingsStore.clearApiKey()
+    return true
+  })
+
+  ipcMain.handle('settings:hasCompletedSetup', () => {
+    return settingsStore.hasCompletedSetup()
+  })
+
+  ipcMain.handle('settings:setAccountName', (_, name: string) => {
+    settingsStore.setAccountName(name)
+    return true
+  })
+
+  ipcMain.handle('settings:getAccountName', () => {
+    return settingsStore.getAccountName()
+  })
 
   createWindow()
 
