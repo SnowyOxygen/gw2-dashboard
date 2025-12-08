@@ -85,6 +85,21 @@ app.whenReady().then(() => {
     return settingsStore.getAccountName()
   })
 
+  ipcMain.handle('settings:validateApiKey', async (_, apiKey: string) => {
+    try {
+      const response = await fetch(`https://api.guildwars2.com/v2/account?access_token=${apiKey}`)
+      
+      if (!response.ok) {
+        return { success: false, error: 'Invalid API key' }
+      }
+
+      const accountData = await response.json()
+      return { success: true, accountData }
+    } catch (error) {
+      return { success: false, error: 'Failed to validate API key' }
+    }
+  })
+
   createWindow()
 
   app.on('activate', function () {

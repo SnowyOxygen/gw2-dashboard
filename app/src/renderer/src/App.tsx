@@ -18,6 +18,10 @@ function App(): React.JSX.Element {
     setHasApiKey(true)
   }
 
+  const handleResetSetup = () => {
+    setHasApiKey(false)
+  }
+
   // Loading state
   if (hasApiKey === null) {
     return (
@@ -36,7 +40,7 @@ function App(): React.JSX.Element {
   return (
     <>
       {hasApiKey ? (
-        <HomeMenu />
+        <HomeMenu onResetSetup={handleResetSetup} />
       ) : (
         <SetupPage onSetupComplete={handleSetupComplete} />
       )}

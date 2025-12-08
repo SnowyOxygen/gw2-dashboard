@@ -8,6 +8,7 @@ interface SettingsAPI {
   hasCompletedSetup: () => Promise<boolean>
   setAccountName: (name: string) => Promise<boolean>
   getAccountName: () => Promise<string | null>
+  validateApiKey: (apiKey: string) => Promise<{ success: boolean; accountData?: any; error?: string }>
 }
 
 declare global {

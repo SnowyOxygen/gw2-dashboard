@@ -10,7 +10,9 @@ const api = {
     clearApiKey: (): Promise<boolean> => ipcRenderer.invoke('settings:clearApiKey'),
     hasCompletedSetup: (): Promise<boolean> => ipcRenderer.invoke('settings:hasCompletedSetup'),
     setAccountName: (name: string): Promise<boolean> => ipcRenderer.invoke('settings:setAccountName', name),
-    getAccountName: (): Promise<string | null> => ipcRenderer.invoke('settings:getAccountName')
+    getAccountName: (): Promise<string | null> => ipcRenderer.invoke('settings:getAccountName'),
+    validateApiKey: (apiKey: string): Promise<{ success: boolean; accountData?: any; error?: string }> => 
+      ipcRenderer.invoke('settings:validateApiKey', apiKey)
   }
 }
 

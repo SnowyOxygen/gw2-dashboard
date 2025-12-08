@@ -23,7 +23,11 @@ interface PlayerStats {
   achievementPoints: number
 }
 
-const HomeMenu: React.FC = () => {
+interface HomeMenuProps {
+  onResetSetup: () => void
+}
+
+const HomeMenu: React.FC<HomeMenuProps> = ({ onResetSetup }) => {
   const [playerStats, setPlayerStats] = useState<PlayerStats>({
     accountName: 'Loading...',
     level: 80,
@@ -86,10 +90,26 @@ const HomeMenu: React.FC = () => {
     console.log('Navigate to Settings')
   }
 
+  const handleForgetApiKey = async () => {
+    if (confirm('Are you sure you want to forget your API key? You will need to set it up again.')) {
+      try {
+        await window.api.settings.clearApiKey()
+        onResetSetup()
+      } catch (error) {
+        console.error('Failed to clear API key:', error)
+      }
+    }
+  }
+
   return (
     <div className="home-menu">
       <header className="home-header">
-        <h1 className="home-title">Guild Wars 2 Dashboard</h1>
+        <div className="header-top">
+          <h1 className="home-title">Guild Wars 2 Dashboard</h1>
+          <button className="forget-api-button" onClick={handleForgetApiKey} title="Forget API Key">
+            🔓 Forget API Key
+          </button>
+        </div>
         <div className="player-info">
           <div className="player-name">{playerStats.accountName}</div>
           <div className="player-stats">

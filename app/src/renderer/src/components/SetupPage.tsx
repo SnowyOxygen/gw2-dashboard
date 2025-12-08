@@ -20,18 +20,16 @@ const SetupPage: React.FC<SetupPageProps> = ({ onSetupComplete }) => {
     setError('')
 
     try {
-      // Validate the API key by making a request to GW2 API
-      const response = await fetch(`https://api.guildwars2.com/v2/account?access_token=${apiKey}`)
+      // Validate the API key via IPC to main process
+      const result = await window.api.settings.validateApiKey(apiKey)
       
-      if (!response.ok) {
-        throw new Error('Invalid API key')
+      if (!result.success) {
+        throw new Error(result.error || 'Invalid API key')
       }
-
-      const accountData = await response.json()
       
       // Save the API key and account name
       await window.api.settings.setApiKey(apiKey)
-      await window.api.settings.setAccountName(accountData.name)
+      await window.api.settings.setAccountName(result.accountData.name)
       
       onSetupComplete()
     } catch (err) {
