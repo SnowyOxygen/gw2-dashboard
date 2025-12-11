@@ -3,14 +3,15 @@ import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import { settingsStore } from './store'
-import { NotificationService } from './notifications'
+import { NotificationService, setMainWindow } from './notifications'
 
 // Global notification service (will be initialized after window creation)
 let notificationService: NotificationService | null = null
+let mainWindow: BrowserWindow | null = null
 
 function createWindow(): void {
   // Create the browser window.
-  const mainWindow = new BrowserWindow({
+  mainWindow = new BrowserWindow({
     width: 900,
     height: 670,
     show: false,
@@ -23,7 +24,7 @@ function createWindow(): void {
   })
 
   mainWindow.on('ready-to-show', () => {
-    mainWindow.show()
+    mainWindow?.show()
   })
 
   mainWindow.webContents.setWindowOpenHandler((details) => {
@@ -39,8 +40,9 @@ function createWindow(): void {
     mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
   }
 
-  // Initialize notification service
+  // Initialize notification service with window reference
   notificationService = new NotificationService()
+  setMainWindow(mainWindow)
 }
 
 // This method will be called when Electron has finished

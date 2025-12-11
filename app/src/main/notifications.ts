@@ -3,22 +3,51 @@
  * Handles all Windows notifications for the application
  */
 
-import { Notification } from 'electron'
+import { Notification, BrowserWindow, app } from 'electron'
 import { existsSync } from 'fs'
+import { readFileSync } from 'fs'
 import { join } from 'path'
 
-// Sound player using Windows Media Player for MP3 support
-function playSound(soundPath: string): void {
+// Reference to main window (will be set by caller)
+let mainWindow: BrowserWindow | null = null
+
+export function setMainWindow(window: BrowserWindow | null): void {
+  mainWindow = window
+}
+
+// Sound player function that uses IPC to play sound in renderer
+function playSoundFile(soundPath: string): void {
   try {
-    if (existsSync(soundPath)) {
-      const { exec } = require('child_process')
-      // Use PowerShell with WindowsMediaPlayer COM object to play MP3
-      const command = `powershell -c "$player = New-Object -ComObject WMPlayer.OCX; $player.URL = '${soundPath}'; $player.controls.play(); Start-Sleep -Milliseconds 500"`
-      exec(command, (error) => {
-        if (error) {
-          console.error('Failed to play notification sound:', error)
+    let finalPath = soundPath
+    
+    if (!existsSync(finalPath)) {
+      console.warn('Sound file not found at:', finalPath)
+      // Try alternative paths
+      const alternativePaths = [
+        join(app.getAppPath(), 'src', 'renderer', 'src', 'assets', 'ding-sound-effect_2.mp3'),
+        join(process.cwd(), 'src', 'renderer', 'src', 'assets', 'ding-sound-effect_2.mp3'),
+      ]
+      
+      for (const altPath of alternativePaths) {
+        if (existsSync(altPath)) {
+          finalPath = altPath
+          break
         }
-      })
+      }
+      
+      if (!existsSync(finalPath)) {
+        console.warn('Sound file not found in any location')
+        return
+      }
+    }
+
+    // Read the sound file and convert to base64
+    const soundBuffer = readFileSync(finalPath)
+    const base64Sound = soundBuffer.toString('base64')
+    
+    // Send IPC message to renderer to play sound
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('play-notification-sound', base64Sound)
     }
   } catch (error) {
     console.error('Error playing sound:', error)
@@ -37,26 +66,23 @@ export class NotificationService {
   private soundPath: string | null = null
 
   constructor() {
-    // Use the custom ding sound from assets
-    // In production, the path will be different, so we need to resolve it properly
-    const isDev = process.env.NODE_ENV === 'development'
+    // Find the sound file path
+    const possiblePaths = [
+      join(app.getAppPath(), 'src', 'renderer', 'src', 'assets', 'ding-sound-effect_2.mp3'),
+      join(process.cwd(), 'src', 'renderer', 'src', 'assets', 'ding-sound-effect_2.mp3'),
+      join(__dirname, '..', '..', 'src', 'renderer', 'src', 'assets', 'ding-sound-effect_2.mp3'),
+    ]
     
-    if (isDev) {
-      // Development: use source path
-      this.soundPath = join(__dirname, '..', '..', 'src', 'renderer', 'src', 'assets', 'ding-sound-effect_2.mp3')
-    } else {
-      // Production: use built path
-      this.soundPath = join(process.resourcesPath, 'app.asar.unpacked', 'src', 'renderer', 'src', 'assets', 'ding-sound-effect_2.mp3')
-      
-      // Fallback: try alternative production path
-      if (!existsSync(this.soundPath)) {
-        this.soundPath = join(__dirname, '..', 'renderer', 'assets', 'ding-sound-effect_2.mp3')
+    for (const path of possiblePaths) {
+      if (existsSync(path)) {
+        this.soundPath = path
+        console.log('Found notification sound at:', this.soundPath)
+        break
       }
     }
     
-    if (!existsSync(this.soundPath)) {
-      console.warn('Notification sound file not found:', this.soundPath)
-      this.soundPath = null
+    if (!this.soundPath) {
+      console.warn('Notification sound file not found in any location')
     }
   }
 
@@ -74,7 +100,7 @@ export class NotificationService {
     try {
       // Play sound before showing notification (unless silent is true)
       if (!options.silent && this.soundPath) {
-        playSound(this.soundPath)
+        playSoundFile(this.soundPath)
       }
 
       const notification = new Notification({

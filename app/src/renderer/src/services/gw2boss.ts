@@ -9,9 +9,8 @@ import type { WorldBossCompletion, WorldBossResult } from '@renderer/models/Worl
 export type { WorldBossCompletion, WorldBossResult }
 
 // Map of boss IDs to display names, zones, and exact spawn times (UTC)
-// Times converted from UTC+1 schedule to UTC
 const BOSS_INFO: Record<string, { name: string; zone: string; spawnTimes: { hour: number; minute: number }[] }> = {
-  'admiral_taidha_covington': { name: 'Admiral Taidha Covington', zone: 'Gendarran Fields', spawnTimes: [{ hour: 0, minute: 0 }, { hour: 3, minute: 0 }, { hour: 6, minute: 0 }, { hour: 9, minute: 0 }, { hour: 12, minute: 0 }, { hour: 15, minute: 0 }, { hour: 18, minute: 0 }, { hour: 21, minute: 0 }] },
+  'admiral_taidha_covington': { name: 'Admiral Taidha Covington', zone: 'Gendarran Fields', spawnTimes: [{ hour: 15, minute: 16 }, { hour: 3, minute: 0 }, { hour: 6, minute: 0 }, { hour: 9, minute: 0 }, { hour: 12, minute: 0 }, { hour: 15, minute: 0 }, { hour: 18, minute: 0 }, { hour: 21, minute: 0 }] },
   'claw_of_jormag': { name: 'Claw of Jormag', zone: 'Frostgorge Sound', spawnTimes: [{ hour: 2, minute: 30 }, { hour: 5, minute: 30 }, { hour: 8, minute: 30 }, { hour: 11, minute: 30 }, { hour: 14, minute: 30 }, { hour: 17, minute: 30 }, { hour: 20, minute: 30 }, { hour: 23, minute: 30 }] },
   'commodore_aria_keene': { name: 'Commodore Aria Keene', zone: 'Gendarran Fields', spawnTimes: [] },
   'drakkar': { name: 'Drakkar', zone: 'Bjora Marches', spawnTimes: [] },

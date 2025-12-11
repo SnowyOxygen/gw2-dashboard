@@ -1,6 +1,41 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
 
+// Audio context for playing sounds
+let audioContext: AudioContext | null = null
+
+async function playNotificationSound(base64Audio: string): Promise<void> {
+  try {
+    if (!audioContext) {
+      audioContext = new (window.AudioContext || (window as any).webkitAudioContext)()
+    }
+
+    const context = audioContext
+    if (context.state === 'suspended') {
+      await context.resume()
+    }
+
+    // Decode base64 to binary
+    const binaryString = atob(base64Audio)
+    const bytes = new Uint8Array(binaryString.length)
+    for (let i = 0; i < binaryString.length; i++) {
+      bytes[i] = binaryString.charCodeAt(i)
+    }
+
+    // Decode audio data
+    const audioBuffer = await context.decodeAudioData(bytes.buffer)
+
+    const source = context.createBufferSource()
+    source.buffer = audioBuffer
+    source.connect(context.destination)
+    source.start(0)
+    
+    console.log('Playing notification sound')
+  } catch (error) {
+    console.error('Failed to play notification sound:', error)
+  }
+}
+
 // Custom APIs for renderer
 const api = {
   settings: {
@@ -51,6 +86,11 @@ if (process.contextIsolated) {
   try {
     contextBridge.exposeInMainWorld('electron', electronAPI)
     contextBridge.exposeInMainWorld('api', api)
+    
+    // Listen for play-notification-sound events
+    ipcRenderer.on('play-notification-sound', (_event, soundPath: string) => {
+      playNotificationSound(soundPath)
+    })
   } catch (error) {
     console.error(error)
   }
