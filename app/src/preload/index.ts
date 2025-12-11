@@ -29,6 +29,18 @@ const api = {
       ipcRenderer.invoke('api:getAccountWorldBosses'),
     getAllWorldBosses: (): Promise<{ success: boolean; allBosses?: string[]; error?: string }> =>
       ipcRenderer.invoke('api:getAllWorldBosses')
+  },
+  notifications: {
+    sendNotification: (title: string, body?: string): Promise<{ success: boolean; error?: string }> =>
+      ipcRenderer.invoke('notifications:send', { title, body }),
+    sendSuccess: (title: string, body?: string): Promise<{ success: boolean; error?: string }> =>
+      ipcRenderer.invoke('notifications:sendSuccess', { title, body }),
+    sendError: (title: string, body?: string): Promise<{ success: boolean; error?: string }> =>
+      ipcRenderer.invoke('notifications:sendError', { title, body }),
+    sendInfo: (title: string, body?: string): Promise<{ success: boolean; error?: string }> =>
+      ipcRenderer.invoke('notifications:sendInfo', { title, body }),
+    sendWarning: (title: string, body?: string): Promise<{ success: boolean; error?: string }> =>
+      ipcRenderer.invoke('notifications:sendWarning', { title, body })
   }
 }
 

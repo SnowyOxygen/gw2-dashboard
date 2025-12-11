@@ -1,8 +1,9 @@
 /**
  * Custom hook for managing world boss completions
  */
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { gw2BossService } from '@renderer/services/gw2boss'
+import { useNotifications } from './useNotifications'
 import type { WorldBossCompletion } from '@renderer/models/WorldBoss'
 
 export const useWorldBossCompletions = () => {
@@ -12,6 +13,9 @@ export const useWorldBossCompletions = () => {
 
   const [loadTime, setLoadTime] = useState<number>(Date.now())
   const [ticks, setTicks] = useState<number>(0)
+
+  const { sendInfo } = useNotifications()
+  const notifiedBossesRef = useRef<Set<string>>(new Set())
 
   useEffect(() => {
     loadBosses()
@@ -29,10 +33,29 @@ export const useWorldBossCompletions = () => {
   useEffect(() => {
     const countdownInterval = setInterval(() => {
       setTicks(prev => prev + 1)
+      
+      // Check for bosses spawning in one minute
+      const now = new Date()
+      bosses.forEach(boss => {
+        if (!boss.nextSpawn || boss.completed) return
+        
+        const timeUntilSpawn = boss.nextSpawn.getTime() - now.getTime()
+        const minutesUntilSpawn = timeUntilSpawn / (60 * 1000)
+        
+        // Send notification when boss will spawn in ~1 minute (between 59-61 seconds remaining)
+        const shouldNotify = timeUntilSpawn > 0 && minutesUntilSpawn <= 1 && minutesUntilSpawn > 0.98
+        const notificationKey = `${boss.id}-${Math.floor(boss.nextSpawn.getTime() / 60000)}`
+        
+        if (shouldNotify && !notifiedBossesRef.current.has(notificationKey)) {
+          notifiedBossesRef.current.add(notificationKey)
+          // eslint-disable-next-line @typescript-eslint/no-floating-promises
+          sendInfo(`${boss.name} spawning soon!`, `${boss.name} will spawn in approximately 1 minute in ${boss.zone}`)
+        }
+      })
     }, 1000)
     
     return () => clearInterval(countdownInterval)
-  }, [])
+  }, [bosses, sendInfo])
 
   const loadBosses = async () => {
     try {
@@ -47,6 +70,8 @@ export const useWorldBossCompletions = () => {
       if (result.success && result.bosses) {
         console.log(`Successfully loaded ${result.bosses.length} bosses:`, result.bosses)
         setBosses(result.bosses)
+        // Clear notification cache on fresh data load to allow re-notification on next cycle
+        notifiedBossesRef.current.clear()
       } else {
         const errorMsg = result.error || 'Failed to load world boss data'
         console.error('Error loading bosses:', errorMsg)
@@ -66,6 +91,7 @@ export const useWorldBossCompletions = () => {
     loading,
     error,
     refetch: loadBosses,
-    loadTime // Time when bosses were last loaded
+    loadTime, // Time when bosses were last loaded
+    ticks // Updated every second to trigger re-renders
   }
 }

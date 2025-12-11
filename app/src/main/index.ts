@@ -3,6 +3,10 @@ import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import { settingsStore } from './store'
+import { NotificationService } from './notifications'
+
+// Global notification service (will be initialized after window creation)
+let notificationService: NotificationService | null = null
 
 function createWindow(): void {
   // Create the browser window.
@@ -34,6 +38,9 @@ function createWindow(): void {
   } else {
     mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
   }
+
+  // Initialize notification service
+  notificationService = new NotificationService()
 }
 
 // This method will be called when Electron has finished
@@ -208,6 +215,67 @@ app.whenReady().then(() => {
       return { success: true, allBosses }
     } catch (error) {
       return { success: false, error: 'Failed to fetch all world bosses' }
+    }
+  })
+
+  // Notification IPC Handlers
+  ipcMain.handle('notifications:send', (_, options: { title: string; body?: string }) => {
+    try {
+      if (!notificationService) {
+        return { success: false, error: 'Notification service not initialized' }
+      }
+      notificationService.sendNotification({ title: options.title, body: options.body })
+      return { success: true }
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' }
+    }
+  })
+
+  ipcMain.handle('notifications:sendSuccess', (_, options: { title: string; body?: string }) => {
+    try {
+      if (!notificationService) {
+        return { success: false, error: 'Notification service not initialized' }
+      }
+      notificationService.sendSuccess(options.title, options.body)
+      return { success: true }
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' }
+    }
+  })
+
+  ipcMain.handle('notifications:sendError', (_, options: { title: string; body?: string }) => {
+    try {
+      if (!notificationService) {
+        return { success: false, error: 'Notification service not initialized' }
+      }
+      notificationService.sendError(options.title, options.body)
+      return { success: true }
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' }
+    }
+  })
+
+  ipcMain.handle('notifications:sendInfo', (_, options: { title: string; body?: string }) => {
+    try {
+      if (!notificationService) {
+        return { success: false, error: 'Notification service not initialized' }
+      }
+      notificationService.sendInfo(options.title, options.body)
+      return { success: true }
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' }
+    }
+  })
+
+  ipcMain.handle('notifications:sendWarning', (_, options: { title: string; body?: string }) => {
+    try {
+      if (!notificationService) {
+        return { success: false, error: 'Notification service not initialized' }
+      }
+      notificationService.sendWarning(options.title, options.body)
+      return { success: true }
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' }
     }
   })
 

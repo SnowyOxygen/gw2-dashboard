@@ -21,12 +21,21 @@ interface GW2API {
   getAllWorldBosses: () => Promise<{ success: boolean; allBosses?: string[]; error?: string }>
 }
 
+interface NotificationAPI {
+  sendNotification: (title: string, body?: string) => Promise<{ success: boolean; error?: string }>
+  sendSuccess: (title: string, body?: string) => Promise<{ success: boolean; error?: string }>
+  sendError: (title: string, body?: string) => Promise<{ success: boolean; error?: string }>
+  sendInfo: (title: string, body?: string) => Promise<{ success: boolean; error?: string }>
+  sendWarning: (title: string, body?: string) => Promise<{ success: boolean; error?: string }>
+}
+
 declare global {
   interface Window {
     electron: ElectronAPI
     api: {
       settings: SettingsAPI
       gw2: GW2API
+      notifications: NotificationAPI
     }
   }
 }
