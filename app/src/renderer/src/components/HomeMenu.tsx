@@ -4,17 +4,20 @@ import './HomeMenu.css'
 import { useAccountData } from '@renderer/hooks/useAccountData'
 import DailyWorldBossCard from './cards/DailyWorldBossCard'
 import EventsCard from './cards/EventsCard'
+import DailyCraftingCard from './cards/DailyCraftingCard'
 
 const STORAGE_KEY = 'dashboard_card_settings'
 
 interface CardSettings {
   showDailyCard: boolean
   showEventsCard: boolean
+  showCraftingCard: boolean
 }
 
 const getDefaultSettings = (): CardSettings => ({
   showDailyCard: false,
-  showEventsCard: false
+  showEventsCard: false,
+  showCraftingCard: false
 })
 
 const loadSettings = (): CardSettings => {
@@ -41,19 +44,21 @@ const HomeMenu: React.FC<HomeMenuProps> = ({ onResetSetup }) => {
   const initialSettings = loadSettings()
   const [showDailyCard, setShowDailyCard] = useState(initialSettings.showDailyCard)
   const [showEventsCard, setShowEventsCard] = useState(initialSettings.showEventsCard)
+  const [showCraftingCard, setShowCraftingCard] = useState(initialSettings.showCraftingCard)
 
   // Save settings to localStorage whenever they change
   useEffect(() => {
     const settings: CardSettings = {
       showDailyCard,
-      showEventsCard
+      showEventsCard,
+      showCraftingCard
     }
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(settings))
     } catch (error) {
       console.error('Failed to save settings:', error)
     }
-  }, [showDailyCard, showEventsCard])
+  }, [showDailyCard, showEventsCard, showCraftingCard])
 
   const handleSettings = () => {
     setSettingsPanelOpen(!settingsPanelOpen)
@@ -108,7 +113,8 @@ const HomeMenu: React.FC<HomeMenuProps> = ({ onResetSetup }) => {
       <div className="menu-grid">
         {showDailyCard && <DailyWorldBossCard title="Daily World Bosses" />}
         {showEventsCard && <EventsCard title="Events" />}
-        {!showDailyCard && !showEventsCard && (
+        {showCraftingCard && <DailyCraftingCard title="Daily Crafting" />}
+        {!showDailyCard && !showEventsCard && !showCraftingCard && (
           <div className="empty-state">
             <p>No cards enabled</p>
             <p>Open settings to enable cards</p>
@@ -148,8 +154,8 @@ const HomeMenu: React.FC<HomeMenuProps> = ({ onResetSetup }) => {
         <h2 className="settings-panel-title">Settings</h2>
         <div className="settings-panel-content">
           <div className="settings-section">
-            <h3 className="settings-section-title">Dashboard Cards</h3>
-            
+            <h3 className="settings-section-title">Widgets</h3>
+
             <label className="settings-toggle">
               <input 
                 type="checkbox" 
@@ -157,17 +163,17 @@ const HomeMenu: React.FC<HomeMenuProps> = ({ onResetSetup }) => {
                 onChange={(e) => setShowDailyCard(e.target.checked)}
               />
               <span className="toggle-slider" />
-              <span className="toggle-label">Daily Card</span>
+              <span className="toggle-label">Daily World Bosses</span>
             </label>
 
             <label className="settings-toggle">
               <input 
                 type="checkbox" 
-                checked={showEventsCard}
-                onChange={(e) => setShowEventsCard(e.target.checked)}
+                checked={showCraftingCard}
+                onChange={(e) => setShowCraftingCard(e.target.checked)}
               />
               <span className="toggle-slider" />
-              <span className="toggle-label">Events Card</span>
+              <span className="toggle-label">Daily Crafting</span>
             </label>
           </div>
         </div>

@@ -3,65 +3,64 @@
  * Handles all communication with the GW2 API through the main process IPC
  */
 
-export interface WorldBossCompletion {
-  id: string
-  name: string
-  zone: string
-  completed: boolean
-}
+import type { WorldBossCompletion, WorldBossResult } from '@renderer/models/WorldBoss'
 
-export interface WorldBossResult {
-  success: boolean
-  bosses?: WorldBossCompletion[]
-  error?: string
-}
+// Re-export types for convenience
+export type { WorldBossCompletion, WorldBossResult }
 
-// Cache for world boss achievements
-let worldBossAchievementsCache: any[] | null = null
+// Map of boss IDs to display names, zones, and exact spawn times (UTC)
+// Times converted from UTC+1 schedule to UTC
+const BOSS_INFO: Record<string, { name: string; zone: string; spawnTimes: { hour: number; minute: number }[] }> = {
+  'admiral_taidha_covington': { name: 'Admiral Taidha Covington', zone: 'Gendarran Fields', spawnTimes: [{ hour: 0, minute: 0 }, { hour: 3, minute: 0 }, { hour: 6, minute: 0 }, { hour: 9, minute: 0 }, { hour: 12, minute: 0 }, { hour: 15, minute: 0 }, { hour: 18, minute: 0 }, { hour: 21, minute: 0 }] },
+  'claw_of_jormag': { name: 'Claw of Jormag', zone: 'Frostgorge Sound', spawnTimes: [{ hour: 2, minute: 30 }, { hour: 5, minute: 30 }, { hour: 8, minute: 30 }, { hour: 11, minute: 30 }, { hour: 14, minute: 30 }, { hour: 17, minute: 30 }, { hour: 20, minute: 30 }, { hour: 23, minute: 30 }] },
+  'commodore_aria_keene': { name: 'Commodore Aria Keene', zone: 'Gendarran Fields', spawnTimes: [] },
+  'drakkar': { name: 'Drakkar', zone: 'Bjora Marches', spawnTimes: [] },
+  'fire_elemental': { name: 'Fire Elemental', zone: 'Metrica Province', spawnTimes: [{ hour: 0, minute: 45 }, { hour: 2, minute: 45 }, { hour: 4, minute: 45 }, { hour: 6, minute: 45 }, { hour: 8, minute: 45 }, { hour: 10, minute: 45 }, { hour: 12, minute: 45 }, { hour: 14, minute: 45 }, { hour: 16, minute: 45 }, { hour: 18, minute: 45 }, { hour: 20, minute: 45 }, { hour: 22, minute: 45 }] },
+  'great_jungle_wurm': { name: 'Great Jungle Wurm', zone: 'Caledon Forest', spawnTimes: [{ hour: 1, minute: 15 }, { hour: 3, minute: 15 }, { hour: 5, minute: 15 }, { hour: 7, minute: 15 }, { hour: 9, minute: 15 }, { hour: 11, minute: 15 }, { hour: 13, minute: 15 }, { hour: 15, minute: 15 }, { hour: 17, minute: 15 }, { hour: 19, minute: 15 }, { hour: 21, minute: 15 }, { hour: 23, minute: 15 }] },
+  'inquest_golem_mark_ii': { name: 'Inquest Golem Mark II', zone: 'Mount Maelstrom', spawnTimes: [{ hour: 2, minute: 0 }, { hour: 5, minute: 0 }, { hour: 8, minute: 0 }, { hour: 11, minute: 0 }, { hour: 14, minute: 0 }, { hour: 17, minute: 0 }, { hour: 20, minute: 0 }, { hour: 23, minute: 0 }] },
+  'megadestroyer': { name: 'Megadestroyer', zone: 'Mount Maelstrom', spawnTimes: [{ hour: 0, minute: 30 }, { hour: 3, minute: 30 }, { hour: 6, minute: 30 }, { hour: 9, minute: 30 }, { hour: 12, minute: 30 }, { hour: 15, minute: 30 }, { hour: 18, minute: 30 }, { hour: 21, minute: 30 }] },
+  'modniir_ulgoth': { name: 'Modniir Ulgoth', zone: 'Harathi Hinterlands', spawnTimes: [{ hour: 1, minute: 30 }, { hour: 4, minute: 30 }, { hour: 7, minute: 30 }, { hour: 10, minute: 30 }, { hour: 13, minute: 30 }, { hour: 16, minute: 30 }, { hour: 19, minute: 30 }, { hour: 22, minute: 30 }] },
+  'shadow_behemoth': { name: 'Shadow Behemoth', zone: 'Queensdale', spawnTimes: [{ hour: 1, minute: 45 }, { hour: 3, minute: 45 }, { hour: 5, minute: 45 }, { hour: 7, minute: 45 }, { hour: 9, minute: 45 }, { hour: 11, minute: 45 }, { hour: 13, minute: 45 }, { hour: 15, minute: 45 }, { hour: 17, minute: 45 }, { hour: 19, minute: 45 }, { hour: 21, minute: 45 }, { hour: 23, minute: 45 }] },
+  'svanir_shaman_chief': { name: 'Svanir Shaman Chief', zone: 'Wayfarer Foothills', spawnTimes: [{ hour: 0, minute: 15 }, { hour: 2, minute: 15 }, { hour: 4, minute: 15 }, { hour: 6, minute: 15 }, { hour: 8, minute: 15 }, { hour: 10, minute: 15 }, { hour: 12, minute: 15 }, { hour: 14, minute: 15 }, { hour: 16, minute: 15 }, { hour: 18, minute: 15 }, { hour: 20, minute: 15 }, { hour: 22, minute: 15 }] },
+  'tequatl_the_sunless': { name: 'Tequatl the Sunless', zone: 'Sparkfly Fen', spawnTimes: [] },
+  'the_shatterer': { name: 'The Shatterer', zone: 'Blazeridge Steppes', spawnTimes: [{ hour: 1, minute: 0 }, { hour: 4, minute: 0 }, { hour: 7, minute: 0 }, { hour: 10, minute: 0 }, { hour: 13, minute: 0 }, { hour: 16, minute: 0 }, { hour: 19, minute: 0 }, { hour: 22, minute: 0 }] },
+  'triple_trouble': { name: 'Triple Trouble', zone: 'Bloodtide Coast', spawnTimes: [] }
+}
 
 /**
- * Extract zone from achievement description or use fallback
+ * Calculate the next spawn time for a boss based on its spawn times
  */
-const extractZoneFromDescription = (description: string): string => {
-  // Try to extract zone from description like "Defeat Taidha Covington in Gendarran Fields"
-  const match = description.match(/in (.+?)(?:\.|$)/)
-  return match ? match[1] : 'Open World'
-}
-
-/**
- * Get or fetch world bosses
- */
-const getWorldBosses = async (): Promise<any[] | null> => {
-  if (worldBossAchievementsCache) {
-    console.log(`Using cached world bosses: ${worldBossAchievementsCache.length} found`)
-    return worldBossAchievementsCache
-  }
-
-  try {
-    console.log('Fetching world bosses from API...')
-    const result = await window.api.gw2.getAllWorldBossAchievements()
-    
-    console.log('API Response:', result)
-    console.log('Bosses data type:', typeof result.bosses)
-    console.log('Bosses is array:', Array.isArray(result.bosses))
-    if (result.bosses && result.bosses.length > 0) {
-      console.log('First boss:', result.bosses[0])
-      console.log('First boss type:', typeof result.bosses[0])
-    }
-    
-    if (result.success && result.bosses) {
-      worldBossAchievementsCache = result.bosses
-      console.log(`Successfully fetched and cached ${result.bosses.length} world bosses`)
-      return result.bosses
-    } else {
-      console.error('API returned error:', result.error)
-    }
-  } catch (error) {
-    console.error('Failed to fetch world bosses:', error)
+function calculateNextSpawn(spawnTimes: { hour: number; minute: number }[]): Date {
+  const now = new Date()
+  
+  // If no spawn times available, return a date far in the future
+  if (!spawnTimes || spawnTimes.length === 0) {
+    const future = new Date(now)
+    future.setUTCDate(future.getUTCDate() + 365)
+    return future
   }
   
-  return null
+  // Find all spawn times in the current day
+  const spawns: Date[] = spawnTimes.map(spawn => {
+    const spawnDate = new Date(now)
+    spawnDate.setUTCHours(spawn.hour, spawn.minute, 0, 0)
+    return spawnDate
+  })
+  
+  // Find the next spawn
+  for (const spawn of spawns) {
+    if (spawn > now) {
+      return spawn
+    }
+  }
+  
+  // If no spawn found today, use first spawn of tomorrow
+  const tomorrow = new Date(now)
+  tomorrow.setUTCDate(tomorrow.getUTCDate() + 1)
+  tomorrow.setUTCHours(spawnTimes[0].hour, spawnTimes[0].minute, 0, 0)
+  return tomorrow
 }
+
 
 export const gw2BossService = {
   /**
@@ -69,72 +68,52 @@ export const gw2BossService = {
    */
   getWorldBossCompletions: async (): Promise<WorldBossResult> => {
     try {
-      // Fetch available world bosses from API
-      const worldBosses = await getWorldBosses()
-      if (!worldBosses || worldBosses.length === 0) {
+      // Fetch all available world bosses
+      const allBossesResult = await window.api.gw2.getAllWorldBosses()
+      if (!allBossesResult.success || !allBossesResult.allBosses) {
         return {
           success: false,
-          error: 'No world bosses found'
+          error: allBossesResult.error || 'Failed to fetch world bosses list'
         }
       }
 
-      console.log(`Found ${worldBosses.length} world bosses`)
-
-      // Fetch account achievements
-      const result = await window.api.gw2.getWorldBossCompletions()
-      
-      if (!result.success) {
-        console.error('GW2 API error:', result.error)
+      // Fetch completed world bosses for the account
+      const completedResult = await window.api.gw2.getAccountWorldBosses()
+      if (!completedResult.success) {
         return {
           success: false,
-          error: result.error || 'Failed to fetch completions'
-        }
-      }
-      
-      console.log(`Account has ${result.achievements?.length} achievements`)
-      console.log('Completed achievements:', result.achievements?.filter((a: any) => a.done).map((a: any) => ({ id: a.id, done: a.done })))
-
-      // Build boss list with completion status
-      const bosses: WorldBossCompletion[] = []
-      
-      for (const achievementData of worldBosses) {
-        const achievementId = achievementData.id
-        try {
-          console.log(`Processing achievement ${achievementId}: ${achievementData.name}`)
-          
-          // Get the zone from the achievement metadata we already have
-          const description = achievementData.description || ''
-          const zone = extractZoneFromDescription(description)
-          
-          // Check if achievement is in the completed list
-          const achievement = result.achievements?.find((a: any) => a.id === achievementId)
-          const isCompleted = achievement?.done ?? false
-          
-          if (isCompleted) {
-            console.warn(`⚠️  Achievement ${achievementId} marked as completed:`, achievement)
-          }
-          
-          bosses.push({
-            id: achievementId.toString(),
-            name: achievementData.name,
-            zone: zone,
-            completed: isCompleted
-          })
-          
-          console.log(`Added boss: ${achievementData.name} (${achievementId}) - Completed: ${isCompleted}`)
-        } catch (err) {
-          console.error(`Error processing boss ${achievementId}:`, err)
+          error: completedResult.error || 'Failed to fetch completed world bosses'
         }
       }
 
-      console.log(`Total bosses loaded: ${bosses.length}`, bosses)
-
-      if (bosses.length === 0) {
+      const completedBosses = new Set(completedResult.completedBosses || [])
+      
+      // Build boss list with completion status and timer info
+      const bosses: WorldBossCompletion[] = allBossesResult.allBosses.map(bossId => {
+        const bossInfo = BOSS_INFO[bossId] || {
+          name: bossId.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' '),
+          zone: 'Open World',
+          spawnTimes: [{ hour: 0, minute: 0 }]
+        }
+        
+        const nextSpawn = calculateNextSpawn(bossInfo.spawnTimes)
+        
         return {
-          success: false,
-          error: 'No boss data could be loaded. Check your API key and try again.'
+          id: bossId,
+          name: bossInfo.name,
+          zone: bossInfo.zone,
+          completed: completedBosses.has(bossId),
+          nextSpawn
         }
-      }
+      })
+      
+      // Sort by next spawn time (soonest first)
+      bosses.sort((a, b) => {
+        if (!a.nextSpawn || !b.nextSpawn) return 0
+        return a.nextSpawn.getTime() - b.nextSpawn.getTime()
+      })
+
+      console.log(`Loaded ${bosses.length} world bosses, ${completedBosses.size} completed`)
 
       return { success: true, bosses }
     } catch (error) {

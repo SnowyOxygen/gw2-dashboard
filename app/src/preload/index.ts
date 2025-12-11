@@ -14,7 +14,9 @@ const api = {
     validateApiKey: (apiKey: string): Promise<{ success: boolean; accountData?: any; error?: string }> => 
       ipcRenderer.invoke('settings:validateApiKey', apiKey),
     getAccountData: (): Promise<{ success: boolean; accountData?: any; error?: string }> => 
-      ipcRenderer.invoke('settings:getAccountData')
+      ipcRenderer.invoke('settings:getAccountData'),
+    getDailyCrafting: (): Promise<{ success: boolean; data?: string[]; error?: string }> =>
+      ipcRenderer.invoke('settings:getDailyCrafting')
   },
   gw2: {
     getWorldBossCompletions: (): Promise<{ success: boolean; achievements?: any; error?: string }> =>
@@ -22,7 +24,11 @@ const api = {
     getAchievementMetadata: (achievementId: number): Promise<{ success: boolean; data?: any; error?: string }> =>
       ipcRenderer.invoke('api:getAchievementMetadata', achievementId),
     getAllWorldBossAchievements: (): Promise<{ success: boolean; bosses?: any[]; error?: string }> =>
-      ipcRenderer.invoke('api:getAllWorldBossAchievements')
+      ipcRenderer.invoke('api:getAllWorldBossAchievements'),
+    getAccountWorldBosses: (): Promise<{ success: boolean; completedBosses?: string[]; error?: string }> =>
+      ipcRenderer.invoke('api:getAccountWorldBosses'),
+    getAllWorldBosses: (): Promise<{ success: boolean; allBosses?: string[]; error?: string }> =>
+      ipcRenderer.invoke('api:getAllWorldBosses')
   }
 }
 

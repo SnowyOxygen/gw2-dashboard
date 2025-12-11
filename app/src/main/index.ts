@@ -120,6 +120,26 @@ app.whenReady().then(() => {
     }
   })
 
+  ipcMain.handle('settings:getDailyCrafting', async () => {
+    try {
+      const apiKey = settingsStore.getApiKey()
+      if (!apiKey) {
+        return { success: false, error: 'No API key found' }
+      }
+
+      const response = await fetch(`https://api.guildwars2.com/v2/account/dailycrafting?access_token=${apiKey}`)
+      
+      if (!response.ok) {
+        return { success: false, error: 'Failed to fetch daily crafting data' }
+      }
+
+      const data = await response.json()
+      return { success: true, data }
+    } catch (error) {
+      return { success: false, error: 'Failed to fetch daily crafting data' }
+    }
+  })
+
   ipcMain.handle('api:getWorldBossCompletions', async () => {
     try {
       const apiKey = settingsStore.getApiKey()
@@ -153,6 +173,41 @@ app.whenReady().then(() => {
       return { success: true, data }
     } catch (error) {
       return { success: false, error: 'Failed to fetch achievement metadata' }
+    }
+  })
+
+  ipcMain.handle('api:getAccountWorldBosses', async () => {
+    try {
+      const apiKey = settingsStore.getApiKey()
+      if (!apiKey) {
+        return { success: false, error: 'No API key found' }
+      }
+
+      const response = await fetch(`https://api.guildwars2.com/v2/account/worldbosses?access_token=${apiKey}`)
+      
+      if (!response.ok) {
+        return { success: false, error: 'Failed to fetch account world bosses' }
+      }
+
+      const completedBosses = await response.json()
+      return { success: true, completedBosses }
+    } catch (error) {
+      return { success: false, error: 'Failed to fetch account world bosses' }
+    }
+  })
+
+  ipcMain.handle('api:getAllWorldBosses', async () => {
+    try {
+      const response = await fetch('https://api.guildwars2.com/v2/worldbosses')
+      
+      if (!response.ok) {
+        return { success: false, error: 'Failed to fetch all world bosses' }
+      }
+
+      const allBosses = await response.json()
+      return { success: true, allBosses }
+    } catch (error) {
+      return { success: false, error: 'Failed to fetch all world bosses' }
     }
   })
 

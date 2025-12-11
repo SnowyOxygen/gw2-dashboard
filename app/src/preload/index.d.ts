@@ -10,12 +10,15 @@ interface SettingsAPI {
   getAccountName: () => Promise<string | null>
   validateApiKey: (apiKey: string) => Promise<{ success: boolean; accountData?: any; error?: string }>
   getAccountData: () => Promise<{ success: boolean; accountData?: any; error?: string }>
+  getDailyCrafting: () => Promise<{ success: boolean; data?: string[]; error?: string }>
 }
 
 interface GW2API {
   getWorldBossCompletions: () => Promise<{ success: boolean; achievements?: any; error?: string }>
   getAchievementMetadata: (achievementId: number) => Promise<{ success: boolean; data?: any; error?: string }>
   getAllWorldBossAchievements: () => Promise<{ success: boolean; bosses?: any[]; error?: string }>
+  getAccountWorldBosses: () => Promise<{ success: boolean; completedBosses?: string[]; error?: string }>
+  getAllWorldBosses: () => Promise<{ success: boolean; allBosses?: string[]; error?: string }>
 }
 
 declare global {

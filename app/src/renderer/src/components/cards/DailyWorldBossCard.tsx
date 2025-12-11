@@ -10,6 +10,26 @@ interface DailyWorldBossCardProps {
 const DailyWorldBossCard: React.FC<DailyWorldBossCardProps> = ({ title }) => {
   const { bosses, loading, error } = useWorldBossCompletions()
 
+  // Calculate remaining time for a boss based on its next spawn time
+  const getTimeRemaining = (nextSpawn: Date | undefined): string => {
+    if (!nextSpawn) return 'Unknown'
+    
+    const now = new Date()
+    const diffMs = nextSpawn.getTime() - now.getTime()
+    
+    if (diffMs < 0) return 'Now'
+    
+    const totalSeconds = Math.floor(diffMs / 1000)
+    const hours = Math.floor(totalSeconds / 3600)
+    const minutes = Math.floor((totalSeconds % 3600) / 60)
+    const seconds = totalSeconds % 60
+    
+    if (hours > 0) {
+      return `${hours}h ${minutes}m`
+    }
+    return `${minutes}m ${seconds}s`
+  }
+
   const dragonHeadSVG = (
     <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" className="boss-icon">
       <title>dragon</title>
@@ -65,6 +85,12 @@ const DailyWorldBossCard: React.FC<DailyWorldBossCardProps> = ({ title }) => {
                 <span className="boss-name">{boss.name}</span>
                 <span className="boss-zone">{boss.zone}</span>
               </div>
+              {boss.nextSpawn && (
+                <div className="boss-timer">
+                  <span className="timer-label">Next:</span>
+                  <span className="timer-value">{getTimeRemaining(boss.nextSpawn)}</span>
+                </div>
+              )}
             </div>
           ))}
         </div>

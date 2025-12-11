@@ -167,3 +167,34 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+.boss-timer {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 8px;
+  flex-shrink: 0;
+}
+
+.timer-label {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.4);
+  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.timer-value {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(200, 170, 110, 1);
+  background: rgba(200, 170, 110, 0.15);
+  padding: 2px 6px;
+  border-radius: 3px;
+  min-width: 40px;
+  text-align: center;
+}
+
+.boss-item.completed .timer-value {
+  opacity: 0.5;
+}

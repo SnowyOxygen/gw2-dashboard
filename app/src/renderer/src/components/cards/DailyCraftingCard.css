@@ -1,0 +1,80 @@
+.daily-crafting-card-background {
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  transform: translateY(-50%);
+  opacity: 0.05;
+  pointer-events: none;
+}
+
+.crafting-icon {
+  width: 120px;
+  height: 120px;
+  color: var(--accent-color, #c89b3c);
+}
+
+.daily-crafting-list {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.craft-item {
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  border-left: 3px solid transparent;
+}
+
+.craft-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.craft-item.completed {
+  opacity: 0.6;
+  border-left-color: var(--accent-color, #c89b3c);
+}
+
+.craft-checkbox {
+  margin-right: 12px;
+}
+
+.checkbox-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 4px;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.checkbox-icon.checked {
+  background: var(--accent-color, #c89b3c);
+  border-color: var(--accent-color, #c89b3c);
+  color: #1a1a1a;
+}
+
+.craft-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.craft-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.craft-item.completed .craft-name {
+  text-decoration: line-through;
+  color: rgba(255, 255, 255, 0.5);
+}

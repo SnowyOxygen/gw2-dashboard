@@ -2,19 +2,36 @@
  * Custom hook for managing world boss completions
  */
 import { useState, useEffect } from 'react'
-import { gw2BossService, WorldBossCompletion } from '@renderer/services/gw2boss'
+import { gw2BossService } from '@renderer/services/gw2boss'
+import type { WorldBossCompletion } from '@renderer/models/WorldBoss'
 
 export const useWorldBossCompletions = () => {
   const [bosses, setBosses] = useState<WorldBossCompletion[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
+  const [loadTime, setLoadTime] = useState<number>(Date.now())
+  const [ticks, setTicks] = useState<number>(0)
+
   useEffect(() => {
     loadBosses()
     
-    // Refresh every 5 minutes to catch any new completions
-    const interval = setInterval(loadBosses, 5 * 60 * 1000)
-    return () => clearInterval(interval)
+    // Reload boss data every 5 minutes to check for completion status changes
+    const dataInterval = setInterval(() => {
+      loadBosses()
+      setLoadTime(Date.now())
+    }, 5 * 60 * 1000) // 5 minutes
+    
+    return () => clearInterval(dataInterval)
+  }, [])
+
+  // Local countdown timer that updates every second without reloading data
+  useEffect(() => {
+    const countdownInterval = setInterval(() => {
+      setTicks(prev => prev + 1)
+    }, 1000)
+    
+    return () => clearInterval(countdownInterval)
   }, [])
 
   const loadBosses = async () => {
@@ -48,6 +65,7 @@ export const useWorldBossCompletions = () => {
     bosses,
     loading,
     error,
-    refetch: loadBosses
+    refetch: loadBosses,
+    loadTime // Time when bosses were last loaded
   }
 }
