@@ -79,105 +79,6 @@
   stroke: currentColor;
 }
 
-.home-header {
-  position: relative;
-  z-index: 100;
-  text-align: center;
-  padding: 20px 20px;
-  margin: 0;
-  background: linear-gradient(135deg, rgba(176, 155, 100, 0.1) 0%, rgba(200, 170, 110, 0.05) 100%);
-  border-bottom: 1px solid rgba(176, 155, 100, 0.2);
-  backdrop-filter: blur(10px);
-  flex-shrink: 0;
-}
-
-.header-top {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  position: relative;
-  margin-bottom: 15px;
-  gap: 20px;
-  max-width: 1200px;
-  margin-left: auto;
-  margin-right: auto;
-  padding: 0 20px;
-}
-
-.forget-api-button {
-  padding: 8px 16px;
-  background: rgba(220, 80, 80, 0.1);
-  border: 1px solid rgba(220, 80, 80, 0.3);
-  border-radius: 8px;
-  color: #dc5050;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-
-.forget-api-button:hover {
-  background: rgba(220, 80, 80, 0.2);
-  border-color: rgba(220, 80, 80, 0.5);
-  transform: translateY(-2px);
-}
-
-.forget-api-button:active {
-  transform: translateY(0);
-}
-
-.home-title {
-  font-size: 32px;
-  font-weight: 700;
-  margin: 0 0 15px 0;
-  background: linear-gradient(135deg, #b09b64 0%, #c8aa6e 50%, #b09b64 100%);
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-.player-info {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  max-width: 1200px;
-  margin-left: auto;
-  margin-right: auto;
-  width: 100%;
-  padding: 0 20px;
-}
-
-.player-name {
-  font-size: 18px;
-  font-weight: 600;
-  color: var(--ev-c-text-1);
-}
-
-.player-stats {
-  display: flex;
-  gap: 12px;
-  justify-content: center;
-  align-items: center;
-  font-size: 14px;
-  color: var(--ev-c-text-2);
-  flex-wrap: wrap;
-}
-
-.stat {
-  display: flex;
-  gap: 4px;
-}
-
-.stat-label {
-  font-weight: 600;
-}
-
-.stat-divider {
-  color: var(--ev-c-text-3);
-}
-
 .menu-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -456,37 +357,9 @@
 }
 
 @media (max-width: 768px) {
-  .home-header {
-    padding: 16px;
-  }
-
-  .header-top {
-    flex-direction: column;
-    gap: 12px;
-    margin-bottom: 12px;
-  }
-
-  .home-title {
-    font-size: 24px;
-    margin: 0;
-  }
-
-  .forget-api-button {
-    width: 100%;
-  }
-
   .menu-grid {
     grid-template-columns: 1fr;
     padding: 30px 16px;
-  }
-
-  .player-info {
-    padding: 0 16px;
-  }
-
-  .player-stats {
-    flex-wrap: wrap;
-    gap: 8px;
   }
 
   .quick-stats {

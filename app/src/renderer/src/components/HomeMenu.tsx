@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import './HomeMenu.css'
 
 import { useAccountData } from '@renderer/hooks/useAccountData'
+import Header from './Header'
 import DailyWorldBossCard from './cards/DailyWorldBossCard'
 import EventsCard from './cards/EventsCard'
 import DailyCraftingCard from './cards/DailyCraftingCard'
@@ -89,26 +90,7 @@ const HomeMenu: React.FC<HomeMenuProps> = ({ onResetSetup }) => {
           <path d="M7 11V7a5 5 0 0 1 10 0v4" />
         </svg>
       </button>
-      <header className="home-header">
-        <div className="header-top">
-          <div style={{ flex: 1 }}>
-            <h1 className="home-title">Guild Wars 2 Dashboard</h1>
-          </div>
-        </div>
-        <div className="player-info">
-          <div className="player-name">{playerStats.name}</div>
-          <div className="player-stats">
-            <span className="stat-divider">•</span>
-            <span className="stat">
-              <span className="stat-label">Account Age:</span> {playerStats.age}
-            </span>
-            <span className="stat-divider">•</span>
-            <span className="stat">
-              <span className="stat-label">Fractal Level:</span> {playerStats.fractal_level}
-            </span>
-          </div>
-        </div>
-      </header>
+      <Header playerStats={playerStats} />
 
       <div className="menu-grid">
         {showDailyCard && <DailyWorldBossCard title="Daily World Bosses" />}
