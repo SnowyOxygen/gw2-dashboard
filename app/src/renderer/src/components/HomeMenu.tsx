@@ -105,7 +105,9 @@ const HomeMenu: React.FC<HomeMenuProps> = ({ onResetSetup }) => {
     <div className="home-menu">
       <header className="home-header">
         <div className="header-top">
-          <h1 className="home-title">Guild Wars 2 Dashboard</h1>
+          <div style={{ flex: 1 }}>
+            <h1 className="home-title">Guild Wars 2 Dashboard</h1>
+          </div>
           <button className="forget-api-button" onClick={handleForgetApiKey} title="Forget API Key">
             🔓 Forget API Key
           </button>
