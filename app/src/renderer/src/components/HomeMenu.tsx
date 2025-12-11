@@ -1,5 +1,7 @@
-import React, { useState, useEffect } from 'react'
+import React from 'react'
 import './HomeMenu.css'
+
+import { useAccountData } from '@renderer/hooks/useAccountData'
 
 interface MenuCardProps {
   title: string
@@ -16,55 +18,12 @@ const MenuCard: React.FC<MenuCardProps> = ({ title, description, icon, onClick }
   </div>
 )
 
-interface PlayerStats {
-  accountName: string
-  level: number
-  masteryPoints: number
-  achievementPoints: number
-}
-
 interface HomeMenuProps {
   onResetSetup: () => void
 }
 
 const HomeMenu: React.FC<HomeMenuProps> = ({ onResetSetup }) => {
-  const [playerStats, setPlayerStats] = useState<PlayerStats>({
-    accountName: 'Loading...',
-    level: 80,
-    masteryPoints: 0,
-    achievementPoints: 0
-  })
-
-  useEffect(() => {
-    loadAccountData()
-  }, [])
-
-  const loadAccountData = async () => {
-    try {
-      const accountName = await window.api.settings.getAccountName()
-      const apiKey = await window.api.settings.getApiKey()
-
-      if (accountName) {
-        setPlayerStats(prev => ({ ...prev, accountName }))
-      }
-
-      // Fetch additional data from GW2 API
-      if (apiKey) {
-        const response = await fetch(`https://api.guildwars2.com/v2/account?access_token=${apiKey}`)
-        if (response.ok) {
-          const data = await response.json()
-          setPlayerStats({
-            accountName: data.name,
-            level: 80, // GW2 max level
-            masteryPoints: data.mastery_points || 0,
-            achievementPoints: data.achievement_points || 0
-          })
-        }
-      }
-    } catch (error) {
-      console.error('Failed to load account data:', error)
-    }
-  }
+  const { playerStats } = useAccountData()
 
   const handleMyProgress = () => {
     console.log('Navigate to Progress tracking')
@@ -113,18 +72,15 @@ const HomeMenu: React.FC<HomeMenuProps> = ({ onResetSetup }) => {
           </button>
         </div>
         <div className="player-info">
-          <div className="player-name">{playerStats.accountName}</div>
+          <div className="player-name">{playerStats.name}</div>
           <div className="player-stats">
+            <span className="stat-divider">•</span>
             <span className="stat">
-              <span className="stat-label">Level:</span> {playerStats.level}
+              <span className="stat-label">Account Age:</span> {playerStats.age}
             </span>
             <span className="stat-divider">•</span>
             <span className="stat">
-              <span className="stat-label">Mastery:</span> {playerStats.masteryPoints}
-            </span>
-            <span className="stat-divider">•</span>
-            <span className="stat">
-              <span className="stat-label">AP:</span> {playerStats.achievementPoints}
+              <span className="stat-label">Fractal Level:</span> {playerStats.fractal_level}
             </span>
           </div>
         </div>

@@ -100,6 +100,26 @@ app.whenReady().then(() => {
     }
   })
 
+  ipcMain.handle('settings:getAccountData', async () => {
+    try {
+      const apiKey = settingsStore.getApiKey()
+      if (!apiKey) {
+        return { success: false, error: 'No API key found' }
+      }
+
+      const response = await fetch(`https://api.guildwars2.com/v2/account?access_token=${apiKey}`)
+      
+      if (!response.ok) {
+        return { success: false, error: 'Failed to fetch account data' }
+      }
+
+      const accountData = await response.json()
+      return { success: true, accountData }
+    } catch (error) {
+      return { success: false, error: 'Failed to fetch account data' }
+    }
+  })
+
   createWindow()
 
   app.on('activate', function () {
