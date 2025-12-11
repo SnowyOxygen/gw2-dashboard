@@ -15,6 +15,14 @@ const api = {
       ipcRenderer.invoke('settings:validateApiKey', apiKey),
     getAccountData: (): Promise<{ success: boolean; accountData?: any; error?: string }> => 
       ipcRenderer.invoke('settings:getAccountData')
+  },
+  gw2: {
+    getWorldBossCompletions: (): Promise<{ success: boolean; achievements?: any; error?: string }> =>
+      ipcRenderer.invoke('api:getWorldBossCompletions'),
+    getAchievementMetadata: (achievementId: number): Promise<{ success: boolean; data?: any; error?: string }> =>
+      ipcRenderer.invoke('api:getAchievementMetadata', achievementId),
+    getAllWorldBossAchievements: (): Promise<{ success: boolean; bosses?: any[]; error?: string }> =>
+      ipcRenderer.invoke('api:getAllWorldBossAchievements')
   }
 }
 

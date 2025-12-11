@@ -1,22 +1,33 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import './HomeMenu.css'
 
 import { useAccountData } from '@renderer/hooks/useAccountData'
+import DailyWorldBossCard from './cards/DailyWorldBossCard'
+import EventsCard from './cards/EventsCard'
 
-interface MenuCardProps {
-  title: string
-  description: string
-  icon: string
-  onClick: () => void
+const STORAGE_KEY = 'dashboard_card_settings'
+
+interface CardSettings {
+  showDailyCard: boolean
+  showEventsCard: boolean
 }
 
-const MenuCard: React.FC<MenuCardProps> = ({ title, description, icon, onClick }) => (
-  <div className="menu-card" onClick={onClick}>
-    <div className="menu-card-icon">{icon}</div>
-    <h3 className="menu-card-title">{title}</h3>
-    <p className="menu-card-description">{description}</p>
-  </div>
-)
+const getDefaultSettings = (): CardSettings => ({
+  showDailyCard: false,
+  showEventsCard: false
+})
+
+const loadSettings = (): CardSettings => {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY)
+    if (stored) {
+      return { ...getDefaultSettings(), ...JSON.parse(stored) }
+    }
+  } catch (error) {
+    console.error('Failed to load settings:', error)
+  }
+  return getDefaultSettings()
+}
 
 interface HomeMenuProps {
   onResetSetup: () => void
@@ -24,29 +35,28 @@ interface HomeMenuProps {
 
 const HomeMenu: React.FC<HomeMenuProps> = ({ onResetSetup }) => {
   const { playerStats } = useAccountData()
+  const [settingsPanelOpen, setSettingsPanelOpen] = useState(false)
+  
+  // Load settings from localStorage
+  const initialSettings = loadSettings()
+  const [showDailyCard, setShowDailyCard] = useState(initialSettings.showDailyCard)
+  const [showEventsCard, setShowEventsCard] = useState(initialSettings.showEventsCard)
 
-  const handleMyProgress = () => {
-    console.log('Navigate to Progress tracking')
-  }
-
-  const handleEventSuggestions = () => {
-    console.log('Navigate to Event suggestions')
-  }
-
-  const handleDailyTasks = () => {
-    console.log('Navigate to Daily tasks')
-  }
-
-  const handleGoalPlanner = () => {
-    console.log('Navigate to Goal planner')
-  }
-
-  const handleWorldEvents = () => {
-    console.log('Navigate to World events')
-  }
+  // Save settings to localStorage whenever they change
+  useEffect(() => {
+    const settings: CardSettings = {
+      showDailyCard,
+      showEventsCard
+    }
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(settings))
+    } catch (error) {
+      console.error('Failed to save settings:', error)
+    }
+  }, [showDailyCard, showEventsCard])
 
   const handleSettings = () => {
-    console.log('Navigate to Settings')
+    setSettingsPanelOpen(!settingsPanelOpen)
   }
 
   const handleForgetApiKey = async () => {
@@ -62,14 +72,23 @@ const HomeMenu: React.FC<HomeMenuProps> = ({ onResetSetup }) => {
 
   return (
     <div className="home-menu">
+      <button className="settings-icon-button" onClick={handleSettings} title="Settings">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <circle cx="12" cy="12" r="3" />
+          <path d="M12 1v6m0 6v6M4.22 4.22l4.24 4.24m4.24 4.24l4.24 4.24M1 12h6m6 0h6M4.22 19.78l4.24-4.24m4.24-4.24l4.24-4.24" />
+        </svg>
+      </button>
+      <button className="forget-api-icon-button" onClick={handleForgetApiKey} title="Forget API Key">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+          <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+        </svg>
+      </button>
       <header className="home-header">
         <div className="header-top">
           <div style={{ flex: 1 }}>
             <h1 className="home-title">Guild Wars 2 Dashboard</h1>
           </div>
-          <button className="forget-api-button" onClick={handleForgetApiKey} title="Forget API Key">
-            🔓 Forget API Key
-          </button>
         </div>
         <div className="player-info">
           <div className="player-name">{playerStats.name}</div>
@@ -87,42 +106,14 @@ const HomeMenu: React.FC<HomeMenuProps> = ({ onResetSetup }) => {
       </header>
 
       <div className="menu-grid">
-        <MenuCard
-          title="My Progress"
-          description="View your character progression, achievements, and unlocks"
-          icon="📊"
-          onClick={handleMyProgress}
-        />
-        <MenuCard
-          title="Event Suggestions"
-          description="Get personalized event recommendations based on your goals"
-          icon="🎯"
-          onClick={handleEventSuggestions}
-        />
-        <MenuCard
-          title="Daily Tasks"
-          description="Track daily objectives, fractals, and strikes"
-          icon="✅"
-          onClick={handleDailyTasks}
-        />
-        <MenuCard
-          title="Goal Planner"
-          description="Set and track long-term goals like legendaries and collections"
-          icon="🎁"
-          onClick={handleGoalPlanner}
-        />
-        <MenuCard
-          title="World Events"
-          description="Real-time world boss and meta event timers"
-          icon="⏰"
-          onClick={handleWorldEvents}
-        />
-        <MenuCard
-          title="Settings"
-          description="Configure API keys and customize your dashboard"
-          icon="⚙️"
-          onClick={handleSettings}
-        />
+        {showDailyCard && <DailyWorldBossCard title="Daily World Bosses" />}
+        {showEventsCard && <EventsCard title="Events" />}
+        {!showDailyCard && !showEventsCard && (
+          <div className="empty-state">
+            <p>No cards enabled</p>
+            <p>Open settings to enable cards</p>
+          </div>
+        )}
       </div>
 
       <footer className="home-footer">
@@ -141,6 +132,54 @@ const HomeMenu: React.FC<HomeMenuProps> = ({ onResetSetup }) => {
           </div>
         </div>
       </footer>
+
+      {/* Settings Panel */}
+      <div className={`settings-panel ${settingsPanelOpen ? 'open' : ''}`}>
+        <button 
+          className="settings-panel-close" 
+          onClick={() => setSettingsPanelOpen(false)}
+          title="Close Settings"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+        <h2 className="settings-panel-title">Settings</h2>
+        <div className="settings-panel-content">
+          <div className="settings-section">
+            <h3 className="settings-section-title">Dashboard Cards</h3>
+            
+            <label className="settings-toggle">
+              <input 
+                type="checkbox" 
+                checked={showDailyCard}
+                onChange={(e) => setShowDailyCard(e.target.checked)}
+              />
+              <span className="toggle-slider" />
+              <span className="toggle-label">Daily Card</span>
+            </label>
+
+            <label className="settings-toggle">
+              <input 
+                type="checkbox" 
+                checked={showEventsCard}
+                onChange={(e) => setShowEventsCard(e.target.checked)}
+              />
+              <span className="toggle-slider" />
+              <span className="toggle-label">Events Card</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      {/* Overlay for closing settings panel */}
+      {settingsPanelOpen && (
+        <div 
+          className="settings-overlay" 
+          onClick={() => setSettingsPanelOpen(false)}
+        />
+      )}
     </div>
   )
 }

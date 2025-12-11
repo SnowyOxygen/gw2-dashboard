@@ -12,11 +12,18 @@ interface SettingsAPI {
   getAccountData: () => Promise<{ success: boolean; accountData?: any; error?: string }>
 }
 
+interface GW2API {
+  getWorldBossCompletions: () => Promise<{ success: boolean; achievements?: any; error?: string }>
+  getAchievementMetadata: (achievementId: number) => Promise<{ success: boolean; data?: any; error?: string }>
+  getAllWorldBossAchievements: () => Promise<{ success: boolean; bosses?: any[]; error?: string }>
+}
+
 declare global {
   interface Window {
     electron: ElectronAPI
     api: {
       settings: SettingsAPI
+      gw2: GW2API
     }
   }
 }
