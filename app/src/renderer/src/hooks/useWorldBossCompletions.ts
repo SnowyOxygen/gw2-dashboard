@@ -1,33 +1,47 @@
 /**
  * Custom hook for managing world boss completions
  */
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { gw2BossService } from '@renderer/services/gw2boss'
 import { useNotifications } from './useNotifications'
+import { useAsyncData } from './common/useAsyncData'
 import type { WorldBossCompletion } from '@renderer/models/WorldBoss'
 
 export const useWorldBossCompletions = () => {
-  const [bosses, setBosses] = useState<WorldBossCompletion[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-
   const [loadTime, setLoadTime] = useState<number>(Date.now())
   const [ticks, setTicks] = useState<number>(0)
 
   const { sendInfo } = useNotifications()
   const notifiedBossesRef = useRef<Set<string>>(new Set())
 
-  useEffect(() => {
-    loadBosses()
+  const fetchBosses = useCallback(async (): Promise<WorldBossCompletion[]> => {
+    console.log('Loading world boss completions...')
+    const result = await gw2BossService.getWorldBossCompletions()
     
-    // Reload boss data every 5 minutes to check for completion status changes
-    const dataInterval = setInterval(() => {
-      loadBosses()
-      setLoadTime(Date.now())
-    }, 5 * 60 * 1000) // 5 minutes
+    console.log('Result from service:', result)
     
-    return () => clearInterval(dataInterval)
+    if (result.success && result.bosses) {
+      console.log(`Successfully loaded ${result.bosses.length} bosses:`, result.bosses)
+      // Clear notification cache on fresh data load to allow re-notification on next cycle
+      notifiedBossesRef.current.clear()
+      return result.bosses
+    }
+    
+    const errorMsg = result.error || 'Failed to load world boss data'
+    console.error('Error loading bosses:', errorMsg)
+    throw new Error(errorMsg)
   }, [])
+
+  const { data: bosses, loading, error, refetch } = useAsyncData(fetchBosses, {
+    refreshInterval: 5 * 60 * 1000 // Reload boss data every 5 minutes
+  })
+
+  // Update load time when bosses are refreshed
+  useEffect(() => {
+    if (bosses) {
+      setLoadTime(Date.now())
+    }
+  }, [bosses])
 
   // Local countdown timer that updates every second without reloading data
   useEffect(() => {
@@ -36,7 +50,7 @@ export const useWorldBossCompletions = () => {
       
       // Check for bosses spawning in one minute
       const now = new Date()
-      bosses.forEach(boss => {
+      bosses?.forEach(boss => {
         if (!boss.nextSpawn || boss.completed) return
         
         const timeUntilSpawn = boss.nextSpawn.getTime() - now.getTime()
@@ -57,41 +71,12 @@ export const useWorldBossCompletions = () => {
     return () => clearInterval(countdownInterval)
   }, [bosses, sendInfo])
 
-  const loadBosses = async () => {
-    try {
-      setLoading(true)
-      setError(null)
-
-      console.log('Loading world boss completions...')
-      const result = await gw2BossService.getWorldBossCompletions()
-      
-      console.log('Result from service:', result)
-      
-      if (result.success && result.bosses) {
-        console.log(`Successfully loaded ${result.bosses.length} bosses:`, result.bosses)
-        setBosses(result.bosses)
-        // Clear notification cache on fresh data load to allow re-notification on next cycle
-        notifiedBossesRef.current.clear()
-      } else {
-        const errorMsg = result.error || 'Failed to load world boss data'
-        console.error('Error loading bosses:', errorMsg)
-        setError(errorMsg)
-      }
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred'
-      console.error('Exception loading bosses:', errorMessage, err)
-      setError(errorMessage)
-    } finally {
-      setLoading(false)
-    }
-  }
-
   return {
-    bosses,
+    bosses: bosses || [],
     loading,
     error,
-    refetch: loadBosses,
-    loadTime, // Time when bosses were last loaded
-    ticks // Updated every second to trigger re-renders
+    refetch,
+    loadTime,
+    ticks
   }
 }
