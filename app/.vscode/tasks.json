@@ -1,0 +1,40 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Run tests",
+			"type": "shell",
+			"command": "npm run test:run"
+		},
+		{
+			"label": "Run tests",
+			"type": "shell",
+			"command": "npm run test:run"
+		},
+		{
+			"label": "Run tests",
+			"type": "shell",
+			"command": "npm run test:run"
+		},
+		{
+			"label": "Run tests",
+			"type": "shell",
+			"command": "npm run test:run"
+		},
+		{
+			"label": "Run tests",
+			"type": "shell",
+			"command": "npm run test:run"
+		},
+		{
+			"label": "Run tests",
+			"type": "shell",
+			"command": "npm run test:run"
+		},
+		{
+			"label": "Run tests",
+			"type": "shell",
+			"command": "npm run test:run"
+		}
+	]
+}

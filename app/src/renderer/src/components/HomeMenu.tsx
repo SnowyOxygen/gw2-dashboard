@@ -6,6 +6,9 @@ import Header from './Header'
 import DailyWorldBossCard from './cards/DailyWorldBossCard'
 import EventsCard from './cards/EventsCard'
 import DailyCraftingCard from './cards/DailyCraftingCard'
+import Footer from './Footer'
+import SettingsPanel from './SettingsPanel'
+import { useWorldBossKillCounter } from '@renderer/hooks/useWorldBossKillCounter'
 
 const STORAGE_KEY = 'dashboard_card_settings'
 
@@ -13,12 +16,20 @@ interface CardSettings {
   showDailyCard: boolean
   showEventsCard: boolean
   showCraftingCard: boolean
+  showBossCounter: boolean
+  showDailiesCounter: boolean
+  showNextBossCounter: boolean
+  showActiveGoalsCounter: boolean
 }
 
 const getDefaultSettings = (): CardSettings => ({
   showDailyCard: false,
   showEventsCard: false,
-  showCraftingCard: false
+  showCraftingCard: false,
+  showBossCounter: true,
+  showDailiesCounter: true,
+  showNextBossCounter: true,
+  showActiveGoalsCounter: true
 })
 
 const loadSettings = (): CardSettings => {
@@ -40,26 +51,35 @@ interface HomeMenuProps {
 const HomeMenu: React.FC<HomeMenuProps> = ({ onResetSetup }) => {
   const { playerStats } = useAccountData()
   const [settingsPanelOpen, setSettingsPanelOpen] = useState(false)
+  const { killsTodayCount, totalKills } = useWorldBossKillCounter()
   
   // Load settings from localStorage
   const initialSettings = loadSettings()
   const [showDailyCard, setShowDailyCard] = useState(initialSettings.showDailyCard)
   const [showEventsCard, setShowEventsCard] = useState(initialSettings.showEventsCard)
   const [showCraftingCard, setShowCraftingCard] = useState(initialSettings.showCraftingCard)
+  const [showBossCounter, setShowBossCounter] = useState(initialSettings.showBossCounter)
+  const [showDailiesCounter, setShowDailiesCounter] = useState(initialSettings.showDailiesCounter)
+  const [showNextBossCounter, setShowNextBossCounter] = useState(initialSettings.showNextBossCounter)
+  const [showActiveGoalsCounter, setShowActiveGoalsCounter] = useState(initialSettings.showActiveGoalsCounter)
 
   // Save settings to localStorage whenever they change
   useEffect(() => {
     const settings: CardSettings = {
       showDailyCard,
       showEventsCard,
-      showCraftingCard
+      showCraftingCard,
+      showBossCounter,
+      showDailiesCounter,
+      showNextBossCounter,
+      showActiveGoalsCounter
     }
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(settings))
     } catch (error) {
       console.error('Failed to save settings:', error)
     }
-  }, [showDailyCard, showEventsCard, showCraftingCard])
+  }, [showDailyCard, showEventsCard, showCraftingCard, showBossCounter, showDailiesCounter, showNextBossCounter, showActiveGoalsCounter])
 
   const handleSettings = () => {
     setSettingsPanelOpen(!settingsPanelOpen)
@@ -104,62 +124,28 @@ const HomeMenu: React.FC<HomeMenuProps> = ({ onResetSetup }) => {
         )}
       </div>
 
-      <footer className="home-footer">
-        <div className="quick-stats">
-          <div className="quick-stat-item">
-            <span className="quick-stat-value">3</span>
-            <span className="quick-stat-label">Dailies Remaining</span>
-          </div>
-          <div className="quick-stat-item">
-            <span className="quick-stat-value">25m</span>
-            <span className="quick-stat-label">Next World Boss</span>
-          </div>
-          <div className="quick-stat-item">
-            <span className="quick-stat-value">2</span>
-            <span className="quick-stat-label">Active Goals</span>
-          </div>
-        </div>
-      </footer>
+      <Footer
+        totalBossKills={totalKills}
+        showBossCounter={showBossCounter}
+      />
 
       {/* Settings Panel */}
-      <div className={`settings-panel ${settingsPanelOpen ? 'open' : ''}`}>
-        <button 
-          className="settings-panel-close" 
-          onClick={() => setSettingsPanelOpen(false)}
-          title="Close Settings"
-        >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <line x1="18" y1="6" x2="6" y2="18" />
-            <line x1="6" y1="6" x2="18" y2="18" />
-          </svg>
-        </button>
-        <h2 className="settings-panel-title">Settings</h2>
-        <div className="settings-panel-content">
-          <div className="settings-section">
-            <h3 className="settings-section-title">Widgets</h3>
-
-            <label className="settings-toggle">
-              <input 
-                type="checkbox" 
-                checked={showDailyCard}
-                onChange={(e) => setShowDailyCard(e.target.checked)}
-              />
-              <span className="toggle-slider" />
-              <span className="toggle-label">Daily World Bosses</span>
-            </label>
-
-            <label className="settings-toggle">
-              <input 
-                type="checkbox" 
-                checked={showCraftingCard}
-                onChange={(e) => setShowCraftingCard(e.target.checked)}
-              />
-              <span className="toggle-slider" />
-              <span className="toggle-label">Daily Crafting</span>
-            </label>
-          </div>
-        </div>
-      </div>
+      <SettingsPanel
+        open={settingsPanelOpen}
+        onClose={() => setSettingsPanelOpen(false)}
+        showDailyCard={showDailyCard}
+        setShowDailyCard={setShowDailyCard}
+        showCraftingCard={showCraftingCard}
+        setShowCraftingCard={setShowCraftingCard}
+        showBossCounter={showBossCounter}
+        setShowBossCounter={setShowBossCounter}
+        showDailiesCounter={showDailiesCounter}
+        setShowDailiesCounter={setShowDailiesCounter}
+        showNextBossCounter={showNextBossCounter}
+        setShowNextBossCounter={setShowNextBossCounter}
+        showActiveGoalsCounter={showActiveGoalsCounter}
+        setShowActiveGoalsCounter={setShowActiveGoalsCounter}
+      />
 
       {/* Overlay for closing settings panel */}
       {settingsPanelOpen && (
