@@ -27,8 +27,11 @@ export const useWorldBossCompletions = () => {
       return result.bosses
     }
     
-    const errorMsg = result.error || 'Failed to load world boss data'
-    console.error('Error loading bosses:', errorMsg)
+    const errorMsg =
+      typeof result.error === 'string' && result.error.trim().length > 0
+        ? result.error
+        : 'Failed to load world boss data'
+    console.error('Error loading bosses:', result.error ?? errorMsg)
     throw new Error(errorMsg)
   }, [])
 

@@ -3,9 +3,7 @@ import './HomeMenu.css'
 
 import { useAccountData } from '@renderer/hooks/useAccountData'
 import Header from './Header'
-import DailyWorldBossCard from './cards/DailyWorldBossCard'
-import EventsCard from './cards/EventsCard'
-import DailyCraftingCard from './cards/DailyCraftingCard'
+import CardController from './CardController'
 import Footer from './Footer'
 import SettingsPanel from './SettingsPanel'
 import { useWorldBossKillCounter } from '@renderer/hooks/useWorldBossKillCounter'
@@ -51,12 +49,12 @@ interface HomeMenuProps {
 const HomeMenu: React.FC<HomeMenuProps> = ({ onResetSetup }) => {
   const { playerStats } = useAccountData()
   const [settingsPanelOpen, setSettingsPanelOpen] = useState(false)
-  const { killsTodayCount, totalKills } = useWorldBossKillCounter()
+  const { totalKills } = useWorldBossKillCounter()
   
   // Load settings from localStorage
   const initialSettings = loadSettings()
   const [showDailyCard, setShowDailyCard] = useState(initialSettings.showDailyCard)
-  const [showEventsCard, setShowEventsCard] = useState(initialSettings.showEventsCard)
+  const showEventsCard = initialSettings.showEventsCard
   const [showCraftingCard, setShowCraftingCard] = useState(initialSettings.showCraftingCard)
   const [showBossCounter, setShowBossCounter] = useState(initialSettings.showBossCounter)
   const [showDailiesCounter, setShowDailiesCounter] = useState(initialSettings.showDailiesCounter)
@@ -112,17 +110,11 @@ const HomeMenu: React.FC<HomeMenuProps> = ({ onResetSetup }) => {
       </button>
       <Header playerStats={playerStats} />
 
-      <div className="menu-grid">
-        {showDailyCard && <DailyWorldBossCard title="Daily World Bosses" />}
-        {showEventsCard && <EventsCard title="Events" />}
-        {showCraftingCard && <DailyCraftingCard title="Daily Crafting" />}
-        {!showDailyCard && !showEventsCard && !showCraftingCard && (
-          <div className="empty-state">
-            <p>No cards enabled</p>
-            <p>Open settings to enable cards</p>
-          </div>
-        )}
-      </div>
+      <CardController
+        showDailyCard={showDailyCard}
+        showEventsCard={showEventsCard}
+        showCraftingCard={showCraftingCard}
+      />
 
       <Footer
         totalBossKills={totalKills}
