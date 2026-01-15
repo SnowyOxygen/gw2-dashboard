@@ -1,5 +1,3 @@
-import { ElectronAPI } from '@electron-toolkit/preload'
-
 interface SettingsAPI {
   hasApiKey: () => Promise<boolean>
   getApiKey: () => Promise<string | null>
@@ -31,7 +29,6 @@ interface NotificationAPI {
 
 declare global {
   interface Window {
-    electron: ElectronAPI
     api: {
       settings: SettingsAPI
       gw2: GW2API

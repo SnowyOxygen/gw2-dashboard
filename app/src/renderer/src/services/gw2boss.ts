@@ -55,21 +55,20 @@ export const gw2BossService = {
       if (!allBossesResult.success || !allBossesResult.allBosses) {
         return {
           success: false,
-          error: typeof allBossesResult.error === 'string' && allBossesResult.error.trim().length > 0
-            ? allBossesResult.error
-            : 'Failed to fetch world bosses list'
+          error: allBossesResult.error || 'Failed to fetch world bosses list'
         }
       }
 
       // Fetch completed world bosses for the account
       const completedResult = await window.api.gw2.getAccountWorldBosses()
-      let completedBosses: Set<string>
       if (!completedResult.success) {
-        console.warn('Falling back: unable to fetch completed world bosses. Rendering with none completed.', completedResult.error)
-        completedBosses = new Set<string>()
-      } else {
-        completedBosses = new Set(completedResult.completedBosses || [])
+        return {
+          success: false,
+          error: completedResult.error || 'Failed to fetch completed world bosses'
+        }
       }
+      
+      const completedBosses = new Set(completedResult.completedBosses || [])
       
       // Build boss list with completion status and timer info
       const bosses: WorldBossCompletion[] = allBossesResult.allBosses.map(bossId => {

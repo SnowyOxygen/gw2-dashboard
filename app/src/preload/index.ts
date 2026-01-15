@@ -1,5 +1,4 @@
 import { contextBridge, ipcRenderer } from 'electron'
-import { electronAPI } from '@electron-toolkit/preload'
 
 // Audio context for playing sounds
 let audioContext: AudioContext | null = null
@@ -84,7 +83,6 @@ const api = {
 // just add to the DOM global.
 if (process.contextIsolated) {
   try {
-    contextBridge.exposeInMainWorld('electron', electronAPI)
     contextBridge.exposeInMainWorld('api', api)
     
     // Listen for play-notification-sound events
@@ -95,8 +93,6 @@ if (process.contextIsolated) {
     console.error(error)
   }
 } else {
-  // @ts-ignore (define in dts)
-  window.electron = electronAPI
   // @ts-ignore (define in dts)
   window.api = api
 }

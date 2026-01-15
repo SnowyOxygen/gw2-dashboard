@@ -8,10 +8,10 @@
   "scripts": {
     "format": "prettier --write .",
     "lint": "eslint --cache .",
-      "test": "vitest",
-      "test:ui": "vitest --ui",
-      "test:run": "vitest run",
-      "test:coverage": "vitest run --coverage",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:run": "vitest run",
+    "test:coverage": "vitest run --coverage",
     "typecheck:node": "tsc --noEmit -p tsconfig.node.json --composite false",
     "typecheck:web": "tsc --noEmit -p tsconfig.web.json --composite false",
     "typecheck": "npm run typecheck:node && npm run typecheck:web",
@@ -30,6 +30,9 @@
     "cypress:run:headless": "cypress run"
   },
   "dependencies": {
+    "@dnd-kit/core": "^6.3.1",
+    "@dnd-kit/sortable": "^10.0.0",
+    "@dnd-kit/utilities": "^3.2.2",
     "@electron-toolkit/preload": "^3.0.2",
     "@electron-toolkit/utils": "^4.0.0",
     "electron-store": "^11.0.2"
