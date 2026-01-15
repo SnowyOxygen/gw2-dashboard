@@ -5,9 +5,10 @@ import './DailyWorldBossCard.css'
 
 interface DailyWorldBossCardProps {
   title: string
+  hideHeader?: boolean
 }
 
-const DailyWorldBossCard: React.FC<DailyWorldBossCardProps> = ({ title }) => {
+const DailyWorldBossCard: React.FC<DailyWorldBossCardProps> = ({ title, hideHeader = false }) => {
   const { bosses, loading, error } = useWorldBossCompletions()
 
   // Calculate remaining time for a boss based on its next spawn time
@@ -39,7 +40,7 @@ const DailyWorldBossCard: React.FC<DailyWorldBossCardProps> = ({ title }) => {
 
   if (loading) {
     return (
-      <Card title={title}>
+      <Card title={title} hideHeader={hideHeader}>
         <div className="daily-boss-card-background">{dragonHeadSVG}</div>
         <div className="daily-card-content">
           <p className="loading-text">Loading boss data...</p>
@@ -50,7 +51,7 @@ const DailyWorldBossCard: React.FC<DailyWorldBossCardProps> = ({ title }) => {
 
   if (error) {
     return (
-      <Card title={title}>
+      <Card title={title} hideHeader={hideHeader}>
         <div className="daily-boss-card-background">{dragonHeadSVG}</div>
         <div className="daily-card-content">
           <p className="error-text">Error: {error}</p>
@@ -63,7 +64,7 @@ const DailyWorldBossCard: React.FC<DailyWorldBossCardProps> = ({ title }) => {
   const completionPercentage = Math.round((completedCount / bosses.length) * 100)
 
   return (
-    <Card title={title}>
+    <Card title={title} hideHeader={hideHeader}>
       <div className="daily-boss-card-background">{dragonHeadSVG}</div>
       <div className="daily-card-content">
         <div className="daily-progress">

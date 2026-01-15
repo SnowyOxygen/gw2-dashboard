@@ -27,12 +27,21 @@ interface NotificationAPI {
   sendWarning: (title: string, body?: string) => Promise<{ success: boolean; error?: string }>
 }
 
+interface WindowAPI {
+  setAlwaysOnTop: (alwaysOnTop: boolean) => void
+  floatCard: (cardId: string, cardTitle: string) => void
+  dockCard: (cardId: string) => void
+  moveCardWindow: (cardId: string, deltaX: number, deltaY: number) => void
+  onCardClosed: (callback: (cardId: string) => void) => void
+}
+
 declare global {
   interface Window {
     api: {
       settings: SettingsAPI
       gw2: GW2API
       notifications: NotificationAPI
+      window: WindowAPI
     }
   }
 }

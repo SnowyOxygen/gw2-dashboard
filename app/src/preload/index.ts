@@ -75,6 +75,25 @@ const api = {
       ipcRenderer.invoke('notifications:sendInfo', { title, body }),
     sendWarning: (title: string, body?: string): Promise<{ success: boolean; error?: string }> =>
       ipcRenderer.invoke('notifications:sendWarning', { title, body })
+  },
+  window: {
+    setAlwaysOnTop: (alwaysOnTop: boolean): void => {
+      ipcRenderer.send('window:setAlwaysOnTop', alwaysOnTop)
+    },
+    floatCard: (cardId: string, cardTitle: string): void => {
+      ipcRenderer.send('card:float', cardId, cardTitle)
+    },
+    dockCard: (cardId: string): void => {
+      ipcRenderer.send('card:dock', cardId)
+    },
+    moveCardWindow: (cardId: string, deltaX: number, deltaY: number): void => {
+      ipcRenderer.send('card:move', cardId, deltaX, deltaY)
+    },
+    onCardClosed: (callback: (cardId: string) => void): void => {
+      ipcRenderer.on('card:closed', (_event, cardId: string) => {
+        callback(cardId)
+      })
+    }
   }
 }
 

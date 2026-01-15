@@ -3,12 +3,12 @@ import Card from './Card'
 
 interface EventsCardProps {
   title: string
-  // Add your specific props here
+  hideHeader?: boolean
 }
 
-const EventsCard: React.FC<EventsCardProps> = ({ title }) => {
+const EventsCard: React.FC<EventsCardProps> = ({ title, hideHeader = false }) => {
   return (
-    <Card title={title}>
+    <Card title={title} hideHeader={hideHeader}>
       {/* Your events card content goes here */}
       <div>Events content</div>
     </Card>

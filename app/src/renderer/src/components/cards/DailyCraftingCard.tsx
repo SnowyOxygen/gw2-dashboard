@@ -5,9 +5,10 @@ import './DailyCraftingCard.css'
 
 interface DailyCraftingCardProps {
   title: string
+  hideHeader?: boolean
 }
 
-const DailyCraftingCard: React.FC<DailyCraftingCardProps> = ({ title }) => {
+const DailyCraftingCard: React.FC<DailyCraftingCardProps> = ({ title, hideHeader = false }) => {
   const { crafts, loading, error } = useDailyCrafting()
 
   const craftingSVG = (
@@ -20,7 +21,7 @@ const DailyCraftingCard: React.FC<DailyCraftingCardProps> = ({ title }) => {
 
   if (loading) {
     return (
-      <Card title={title}>
+      <Card title={title} hideHeader={hideHeader}>
         <div className="daily-crafting-card-background">{craftingSVG}</div>
         <div className="daily-card-content">
           <p className="loading-text">Loading crafting data...</p>
@@ -31,7 +32,7 @@ const DailyCraftingCard: React.FC<DailyCraftingCardProps> = ({ title }) => {
 
   if (error) {
     return (
-      <Card title={title}>
+      <Card title={title} hideHeader={hideHeader}>
         <div className="daily-crafting-card-background">{craftingSVG}</div>
         <div className="daily-card-content">
           <p className="error-text">Error: {error}</p>
@@ -44,7 +45,7 @@ const DailyCraftingCard: React.FC<DailyCraftingCardProps> = ({ title }) => {
   const completionPercentage = crafts.length > 0 ? Math.round((completedCount / crafts.length) * 100) : 0
 
   return (
-    <Card title={title}>
+    <Card title={title} hideHeader={hideHeader}>
       <div className="daily-crafting-card-background">{craftingSVG}</div>
       <div className="daily-card-content">
         <div className="daily-progress">

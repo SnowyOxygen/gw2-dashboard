@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import HomeMenu from './components/HomeMenu'
 import SetupPage from './components/SetupPage'
+import CardWindow from './components/CardWindow'
 
 function App(): React.JSX.Element {
   const [hasApiKey, setHasApiKey] = useState<boolean | null>(null)
@@ -20,6 +21,14 @@ function App(): React.JSX.Element {
 
   const handleResetSetup = () => {
     setHasApiKey(false)
+  }
+
+  // Check if we're in a card window
+  const hash = window.location.hash
+  const cardMatch = hash.match(/#\/card\/(.+)/)
+  if (cardMatch) {
+    const cardId = cardMatch[1]
+    return <CardWindow cardId={cardId} />
   }
 
   // Loading state

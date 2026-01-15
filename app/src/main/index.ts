@@ -13,6 +13,7 @@ import {
 // Global notification service (will be initialized after window creation)
 let notificationService: NotificationService | null = null
 let mainWindow: BrowserWindow | null = null
+const floatingCardWindows = new Map<string, BrowserWindow>()
 
 function createWindow(): void {
   // Create the browser window.
@@ -34,6 +35,21 @@ function createWindow(): void {
     mainWindow?.show()
   })
 
+  mainWindow.on('closed', () => {
+    // Close all floating card windows when main window closes
+    floatingCardWindows.forEach((window) => {
+      try {
+        if (window && !window.isDestroyed()) {
+          window.close()
+        }
+      } catch (e) {
+        // Window may already be closed, ignore errors
+      }
+    })
+    floatingCardWindows.clear()
+    mainWindow = null
+  })
+
   mainWindow.webContents.setWindowOpenHandler((details) => {
     shell.openExternal(details.url)
     return { action: 'deny' }
@@ -52,6 +68,45 @@ function createWindow(): void {
   setMainWindow(mainWindow)
 }
 
+function createFloatingCardWindow(cardId: string, cardTitle: string, x: number, y: number): void {
+  const cardWindow = new BrowserWindow({
+    width: 400,
+    height: 500,
+    x: x + 450,
+    y: y,
+    show: true,
+    alwaysOnTop: true,
+    frame: false,
+    webPreferences: {
+      preload: join(__dirname, '../preload/index.js'),
+      sandbox: true,
+      nodeIntegration: false,
+      contextIsolation: true,
+    }
+  })
+
+  cardWindow.setTitle(cardTitle)
+
+  // Load the card content
+  if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
+    cardWindow.loadURL(`${process.env['ELECTRON_RENDERER_URL']}#/card/${cardId}`)
+  } else {
+    cardWindow.loadFile(join(__dirname, '../renderer/index.html'), { hash: `/card/${cardId}` })
+  }
+
+  // Store window reference
+  floatingCardWindows.set(cardId, cardWindow)
+
+  // Clean up on close
+  cardWindow.on('closed', () => {
+    floatingCardWindows.delete(cardId)
+    // Notify main window that card was closed (only if main window still exists)
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('card:closed', cardId)
+    }
+  })
+}
+
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
@@ -68,6 +123,39 @@ app.whenReady().then(() => {
 
   // IPC test
   ipcMain.on('ping', () => console.log('pong'))
+
+  // IPC handler for setting always-on-top mode
+  ipcMain.on('window:setAlwaysOnTop', (_event, alwaysOnTop: boolean) => {
+    if (mainWindow) {
+      mainWindow.setAlwaysOnTop(alwaysOnTop)
+    }
+  })
+
+  // IPC handler for creating floating card windows
+  ipcMain.on('card:float', (_event, cardId: string, cardTitle: string) => {
+    if (mainWindow) {
+      const bounds = mainWindow.getBounds()
+      createFloatingCardWindow(cardId, cardTitle, bounds.x, bounds.y)
+    }
+  })
+
+  // IPC handler for closing floating card windows
+  ipcMain.on('card:dock', (_event, cardId: string) => {
+    const cardWindow = floatingCardWindows.get(cardId)
+    if (cardWindow) {
+      cardWindow.close()
+      floatingCardWindows.delete(cardId)
+    }
+  })
+
+  // IPC handler for moving floating card windows
+  ipcMain.on('card:move', (_event, cardId: string, deltaX: number, deltaY: number) => {
+    const cardWindow = floatingCardWindows.get(cardId)
+    if (cardWindow) {
+      const [x, y] = cardWindow.getPosition()
+      cardWindow.setPosition(x + deltaX, y + deltaY)
+    }
+  })
 
   // Register all IPC handlers using modular approach
   registerSettingsHandlers(settingsStore)
