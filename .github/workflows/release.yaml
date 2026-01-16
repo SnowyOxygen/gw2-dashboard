@@ -1,0 +1,156 @@
+name: Create Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  create-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get release info
+        id: release
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/}
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Creating release for version: $VERSION"
+
+      - name: Create Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.release.outputs.version }}
+          release_name: Release ${{ steps.release.outputs.version }}
+          draft: false
+          prerelease: false
+          body: |
+            ## Changes in ${{ steps.release.outputs.version }}
+            
+            See commit history for details.
+            
+            ### Installation
+            
+            Download the appropriate installer for your platform below.
+
+  build-windows:
+    needs: create-release
+    runs-on: windows-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: 'app/package-lock.json'
+
+      - name: Install dependencies
+        working-directory: app
+        run: npm ci
+
+      - name: Build application
+        working-directory: app
+        run: npm run build:win
+
+      - name: Upload Windows artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-build
+          path: |
+            app/dist/*.exe
+            app/dist/*.msi
+
+      - name: Upload release assets
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            app/dist/*.exe
+            app/dist/*.msi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  build-macos:
+    needs: create-release
+    runs-on: macos-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: 'app/package-lock.json'
+
+      - name: Install dependencies
+        working-directory: app
+        run: npm ci
+
+      - name: Build application
+        working-directory: app
+        run: npm run build:mac
+
+      - name: Upload macOS artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-build
+          path: app/dist/*.dmg
+
+      - name: Upload release assets
+        uses: softprops/action-gh-release@v1
+        with:
+          files: app/dist/*.dmg
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  build-linux:
+    needs: create-release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: 'app/package-lock.json'
+
+      - name: Install dependencies
+        working-directory: app
+        run: npm ci
+
+      - name: Build application
+        working-directory: app
+        run: npm run build:linux
+
+      - name: Upload Linux artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-build
+          path: |
+            app/dist/*.AppImage
+            app/dist/*.snap
+
+      - name: Upload release assets
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            app/dist/*.AppImage
+            app/dist/*.snap
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
