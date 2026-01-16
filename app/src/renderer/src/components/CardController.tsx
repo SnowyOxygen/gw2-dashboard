@@ -184,10 +184,6 @@ const CardController: React.FC<CardControllerProps> = ({
   }
 
   const renderCard = (card: CardConfig) => {
-    const cardTitle = card.type === 'daily' ? 'Daily World Bosses' : 
-                      card.type === 'events' ? 'Events' :
-                      'Daily Crafting'
-    
     switch (card.type) {
       case 'daily':
         return <DailyWorldBossCard title="Daily World Bosses" hideHeader={true} />
