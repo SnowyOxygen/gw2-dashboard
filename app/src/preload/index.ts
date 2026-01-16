@@ -103,6 +103,11 @@ const api = {
 if (process.contextIsolated) {
   try {
     contextBridge.exposeInMainWorld('api', api)
+    contextBridge.exposeInMainWorld('electron', {
+      process: {
+        versions: process.versions
+      }
+    })
     
     // Listen for play-notification-sound events
     ipcRenderer.on('play-notification-sound', (_event, soundPath: string) => {
@@ -114,4 +119,10 @@ if (process.contextIsolated) {
 } else {
   // @ts-ignore (define in dts)
   window.api = api
+  // @ts-ignore (define in dts)
+  window.electron = {
+    process: {
+      versions: process.versions
+    }
+  }
 }

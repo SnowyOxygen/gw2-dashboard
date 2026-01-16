@@ -43,5 +43,12 @@ declare global {
       notifications: NotificationAPI
       window: WindowAPI
     }
+    electron: {
+      process: {
+        versions: NodeJS.ProcessVersions
+      }
+    }
   }
 }
+
+export {}
