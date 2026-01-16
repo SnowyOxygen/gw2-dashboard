@@ -9,41 +9,7 @@ permissions:
   contents: write
 
 jobs:
-  create-release:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Get release info
-        id: release
-        run: |
-          VERSION=${GITHUB_REF#refs/tags/}
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "Creating release for version: $VERSION"
-
-      - name: Create Release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ steps.release.outputs.version }}
-          release_name: Release ${{ steps.release.outputs.version }}
-          draft: false
-          prerelease: false
-          body: |
-            ## Changes in ${{ steps.release.outputs.version }}
-            
-            See commit history for details.
-            
-            ### Installation
-            
-            Download the appropriate installer for your platform below.
-
   build-windows:
-    needs: create-release
     runs-on: windows-latest
     steps:
       - name: Checkout code
@@ -72,17 +38,7 @@ jobs:
             app/dist/*.exe
             app/dist/*.msi
 
-      - name: Upload release assets
-        uses: softprops/action-gh-release@v1
-        with:
-          files: |
-            app/dist/*.exe
-            app/dist/*.msi
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
   build-macos:
-    needs: create-release
     runs-on: macos-latest
     steps:
       - name: Checkout code
@@ -109,15 +65,7 @@ jobs:
           name: macos-build
           path: app/dist/*.dmg
 
-      - name: Upload release assets
-        uses: softprops/action-gh-release@v1
-        with:
-          files: app/dist/*.dmg
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
   build-linux:
-    needs: create-release
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -146,11 +94,32 @@ jobs:
             app/dist/*.AppImage
             app/dist/*.snap
 
-      - name: Upload release assets
+  create-release:
+    needs: [build-windows, build-macos, build-linux]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
+          draft: false
+          prerelease: false
           files: |
-            app/dist/*.AppImage
-            app/dist/*.snap
+            artifacts/windows-build/*
+            artifacts/macos-build/*
+            artifacts/linux-build/*
+          body: |
+            ## Release ${{ github.ref_name }}
+            
+            Download the appropriate installer for your platform below.
+            
+            ### Assets
+            - **Windows**: `.exe` and `.msi` installers
+            - **macOS**: `.dmg` installer
+            - **Linux**: `.AppImage` and `.snap` packages
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
