@@ -26,12 +26,12 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
   setShowCraftingCard,
   showBossCounter,
   setShowBossCounter,
-  showDailiesCounter,
-  setShowDailiesCounter,
-  showNextBossCounter,
-  setShowNextBossCounter,
-  showActiveGoalsCounter,
-  setShowActiveGoalsCounter
+  _showDailiesCounter,
+  _setShowDailiesCounter,
+  _showNextBossCounter,
+  _setShowNextBossCounter,
+  _showActiveGoalsCounter,
+  _setShowActiveGoalsCounter
 }) => {
   return (
     <div className={`settings-panel ${open ? 'open' : ''}`}>

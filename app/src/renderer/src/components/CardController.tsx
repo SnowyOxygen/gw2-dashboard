@@ -171,8 +171,8 @@ const CardController: React.FC<CardControllerProps> = ({
     }
   }
 
-  const handleFloatCard = (id: string, title: string) => {
-    window.api.window.floatCard(id, title)
+  const handleFloatCard = (id: string, _title: string) => {
+    window.api.window.floatCard(id, _title)
     setCardOrder(prev =>
       prev.map(card => {
         if (card.id === id) {

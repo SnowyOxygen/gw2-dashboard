@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import DailyWorldBossCard from './cards/DailyWorldBossCard'
 import EventsCard from './cards/EventsCard'
 import DailyCraftingCard from './cards/DailyCraftingCard'
